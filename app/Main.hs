@@ -9,25 +9,26 @@ import           Data.Extensible
 import           Data.Extensible.GetOpt
 import           Mix
 import           Mix.Plugin.Logger      as MixLogger
-import           Mixlogue.Cmd
-import           Mixlogue.Env
+import           Mixlogue.Cmd           as Cmd
+import           System.Environment     (getEnv)
 import           Version                (showVersion')
 
 main :: IO ()
-main = withGetOpt "[options] [input-file]" opts $ \r args -> do
+main = withGetOpt "[options]" opts $ \r _args -> do
   _ <- tryIO $ loadFile defaultConfig
-  case (r ^. #version, listToMaybe args) of
-    (True, _)      -> B.putStr $ fromString (showVersion' version) <> "\n"
-    (_, Nothing)   -> error "please input config file path."
-    (_, Just path) -> runCmd r path
+  if | r ^. #version -> B.putStr $ fromString (showVersion' version) <> "\n"
+     | r ^. #ls      -> runCmd r Cmd.ShowChannels
+     | otherwise     -> runCmd r Cmd.RunServer
   where
     opts = #version @= versionOpt
         <: #verbose @= verboseOpt
+        <: #ls      @= lsOpt
         <: nil
 
 type Options = Record
   '[ "version" >: Bool
    , "verbose" >: Bool
+   , "ls"      >: Bool
    ]
 
 versionOpt :: OptDescr' Bool
@@ -36,11 +37,16 @@ versionOpt = optFlag [] ["version"] "Show version"
 verboseOpt :: OptDescr' Bool
 verboseOpt = optFlag ['v'] ["verbose"] "Enable verbose mode: verbosity level \"debug\""
 
-runCmd :: Options -> FilePath -> IO ()
-runCmd opts _path = Mix.run plugin cmd
+lsOpt :: OptDescr' Bool
+lsOpt = optFlag [] ["ls"] "Show target channels"
+
+runCmd :: Options -> Cmd -> IO ()
+runCmd opts cmd = do
+  token <- liftIO $ fromString <$> getEnv "SLACK_TOKEN"
+  let plugin = hsequence
+         $ #logger <@=> MixLogger.buildPlugin logOpts
+        <: #token  <@=> pure token
+        <: nil
+  Mix.run plugin $ Cmd.run cmd
   where
-    plugin :: Mix.Plugin () IO Env
-    plugin = hsequence
-        $ #logger <@=> MixLogger.buildPlugin logOpts
-       <: nil
     logOpts = #handle @= stdout <: #verbose @= (opts ^. #verbose) <: nil

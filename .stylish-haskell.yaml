@@ -231,8 +231,9 @@ language_extensions:
 - DataKinds
 - FlexibleContexts
 - FlexibleInstances
-- LambdaCase
 - GeneralizedNewtypeDeriving
+- LambdaCase
+- MultiWayIf
 - OverloadedLabels
 - OverloadedStrings
 - PolyKinds
