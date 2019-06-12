@@ -1,0 +1,68 @@
+name:                mixlogue
+version:             0.1.0
+homepage:            https://github.com/matsubara0507/mixlogue#readme
+license:             MIT
+author:              MATSUBARA Nobutada
+maintainer:          t12307043@gunma-u.ac.jp
+copyright:           MATSUBARA Nobutada
+category:            Web
+description:         Please see the README on GitHub at <https://github.com/matsubara0507/mixlogue#readme>
+
+extra-source-files:
+- README.md
+- CHANGELOG.md
+
+ghc-options:
+- -Wall
+- -Wcompat
+- -Wincomplete-record-updates
+- -Wincomplete-uni-patterns
+- -Wredundant-constraints
+
+default-extensions:
+- NoImplicitPrelude
+
+- ConstraintKinds
+- DataKinds
+- FlexibleContexts
+- FlexibleInstances
+- LambdaCase
+- GeneralizedNewtypeDeriving
+- OverloadedLabels
+- OverloadedStrings
+- PolyKinds
+- QuasiQuotes
+- RankNTypes
+- StandaloneDeriving
+- TemplateHaskell
+- TypeFamilies
+- TypeOperators
+- TypeSynonymInstances
+
+dependencies:
+- base >= 4.7 && < 5
+- rio >= 0.1.1.0
+- extensible >= 0.4.9
+- mix
+
+library:
+  source-dirs: src
+
+executables:
+  mixlogue:
+    main: Main.hs
+    source-dirs: app
+    dependencies:
+    - mixlogue
+    - githash
+    - dotenv
+
+tests:
+  mixlogue-test:
+    main: Driver.hs
+    source-dirs: test
+    dependencies:
+    - mixlogue
+    - tasty
+    - tasty-hspec
+    other-modules: []
