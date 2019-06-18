@@ -6,6 +6,7 @@ extra-deps:
 - req-2.0.1
 - retry-0.8.0.1
 - github: matsubara0507/mix.hs
-  commit: a476a706aa2b319683cc4eba612897486f01e9ac
+  commit: 2138a7a5a43443040893134f1170ce1643f0d498
   subdirs:
   - mix
+  - mix-json-logger

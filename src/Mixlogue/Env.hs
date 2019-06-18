@@ -11,3 +11,5 @@ type Env = Record
    ]
 
 type SlackToken = Text
+
+type UnixTime = Text

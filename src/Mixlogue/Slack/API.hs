@@ -16,6 +16,19 @@ type ChannelList = Record
    , "response_metadata" >: Record '[ "next_cursor" >: Text ]
    ]
 
+type Message = Record
+  '[ "type" >: Text
+   , "user" >: Maybe Text
+   , "text" >: Text
+   , "ts"   >: UnixTime
+   ]
+
+type MessageList = Record
+  '[ "messages" >: [Message]
+   , "oldest"   >: UnixTime
+   , "has_more" >: Bool
+   ]
+
 fetchChannels :: SlackToken -> RIO Env [Channel]
 fetchChannels token = go [] <*> toCursor =<< get Nothing
   where
@@ -41,5 +54,27 @@ getChannelList token limit cursor = req GET url NoReqBody jsonResponse params
     params = mconcat
       [ "token" =: token
       , "limit" =: limit
+      , "exclude_archived" =: True
+      , "exclude_members"  =: True
       , maybe mempty ("cursor" =:) cursor
+      ]
+
+fetchMessages :: SlackToken -> UnixTime -> Channel -> RIO Env [Message]
+fetchMessages token ts ch =
+  view #messages <$> getMessageList' token ts (ch ^. #id)
+
+getMessageList' :: SlackToken -> UnixTime -> Text -> RIO Env MessageList
+getMessageList' t ts cid = do
+  logDebug (display $ "fetching slack messages from " <> cid)
+  runReq defaultHttpConfig $ responseBody <$> getMessageList t ts cid
+
+getMessageList :: SlackToken -> UnixTime -> Text -> Req (JsonResponse MessageList)
+getMessageList token ts cid = req GET url NoReqBody jsonResponse params
+  where
+    url    = https "slack.com" /: "api" /: "channels.history"
+    params = mconcat
+      [ "token"   =: token
+      , "channel" =: cid
+      , "oldest"  =: ts
+      , "inclusive" =: True
       ]

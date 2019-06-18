@@ -29,6 +29,7 @@ default-extensions:
 - GeneralizedNewtypeDeriving
 - LambdaCase
 - MultiWayIf
+- NumericUnderscores
 - OverloadedLabels
 - OverloadedStrings
 - PolyKinds
@@ -36,6 +37,7 @@ default-extensions:
 - RankNTypes
 - StandaloneDeriving
 - TemplateHaskell
+- TupleSections
 - TypeFamilies
 - TypeOperators
 - TypeSynonymInstances
@@ -45,6 +47,8 @@ dependencies:
 - rio >= 0.1.1.0
 - extensible >= 0.4.9
 - mix
+- mix-json-logger
+- mtl
 - req >= 2.0.0
 
 library:

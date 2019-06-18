@@ -241,6 +241,7 @@ language_extensions:
 - RankNTypes
 - StandaloneDeriving
 - TemplateHaskell
+- TupleSections
 - TypeFamilies
 - TypeOperators
 - TypeSynonymInstances
