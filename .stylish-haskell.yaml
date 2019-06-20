@@ -242,6 +242,7 @@ language_extensions:
 - StandaloneDeriving
 - TemplateHaskell
 - TupleSections
+- TypeApplications
 - TypeFamilies
 - TypeOperators
 - TypeSynonymInstances

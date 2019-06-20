@@ -10,7 +10,7 @@ import           Data.Extensible
 import qualified Mix.Plugin.Logger.JSON   as Mix
 import           Mixlogue.Env
 import           Mixlogue.Fallible        (exit, exit', (!??), (???))
-import qualified Mixlogue.Slack.API       as Slack
+import qualified Mixlogue.Slack           as Slack
 
 run :: Cmd -> RIO Env ()
 run (ShowTimestamp ts) = logInfo $ display ts

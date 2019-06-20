@@ -3,7 +3,9 @@ module Mixlogue.Slack.API where
 import           RIO
 
 import           Data.Extensible
+import qualified Mix.Plugin.Logger.JSON as Mix
 import           Mixlogue.Env
+import           Mixlogue.Slack.Utils   (toQueryParam)
 import           Network.HTTP.Req
 
 type Channel = Record
@@ -14,6 +16,14 @@ type Channel = Record
 type ChannelList = Record
   '[ "channels"          >: [Channel]
    , "response_metadata" >: Record '[ "next_cursor" >: Text ]
+   ]
+
+type ChannelListParams = Record
+  '[ "token"            >: Text
+   , "cursor"           >: Maybe Text
+   , "exclude_archived" >: Maybe Bool
+   , "exclude_members"  >: Maybe Bool
+   , "limit"            >: Maybe Int
    ]
 
 type Message = Record
@@ -29,52 +39,32 @@ type MessageList = Record
    , "has_more" >: Bool
    ]
 
-fetchChannels :: SlackToken -> RIO Env [Channel]
-fetchChannels token = go [] <*> toCursor =<< get Nothing
+type MessageListParams = Record
+  '[ "token"     >: Text
+   , "channel"   >: Text
+   , "count"     >: Maybe Int
+   , "inclusive" >: Maybe Bool
+   , "latest"    >: Maybe Text
+   , "oldest"    >: Maybe Text
+   , "unreads"   >: Maybe Bool
+   ]
+
+getChannelList :: ChannelListParams -> Req (JsonResponse ChannelList)
+getChannelList = req GET url NoReqBody jsonResponse . toQueryParam
   where
-    get :: Maybe ChannelList -> RIO Env ChannelList
-    get = getChannelList' token 200 . fmap toCursor
+    url = https "slack.com" /: "api" /: "channels.list"
 
-    toCursor :: ChannelList -> Text
-    toCursor = view #next_cursor . view #response_metadata
+getChannelList' :: ChannelListParams -> RIO Env ChannelList
+getChannelList' params = do
+  Mix.logDebugR "fetching slack channels" params
+  runReq defaultHttpConfig $ responseBody <$> getChannelList params
 
-    go :: [Channel] -> ChannelList -> Text -> RIO Env [Channel]
-    go acc _ "" = pure acc
-    go acc cs _ = go (cs ^. #channels <> acc) <*> toCursor =<< get (Just cs)
+getMessageList' :: MessageListParams -> RIO Env MessageList
+getMessageList' params = do
+  Mix.logDebugR "fetching slack messages" params
+  runReq defaultHttpConfig $ responseBody <$> getMessageList params
 
-getChannelList' :: SlackToken -> Int -> Maybe Text -> RIO Env ChannelList
-getChannelList' t l c = do
-  logDebug (display $ "fetching slack channels" <> maybe mempty (" from " <>) c)
-  runReq defaultHttpConfig $ responseBody <$> getChannelList t l c
-
-getChannelList :: SlackToken -> Int -> Maybe Text -> Req (JsonResponse ChannelList)
-getChannelList token limit cursor = req GET url NoReqBody jsonResponse params
+getMessageList :: MessageListParams -> Req (JsonResponse MessageList)
+getMessageList = req GET url NoReqBody jsonResponse . toQueryParam
   where
-    url    = https "slack.com" /: "api" /: "channels.list"
-    params = mconcat
-      [ "token" =: token
-      , "limit" =: limit
-      , "exclude_archived" =: True
-      , "exclude_members"  =: True
-      , maybe mempty ("cursor" =:) cursor
-      ]
-
-fetchMessages :: SlackToken -> UnixTime -> Channel -> RIO Env [Message]
-fetchMessages token ts ch =
-  view #messages <$> getMessageList' token ts (ch ^. #id)
-
-getMessageList' :: SlackToken -> UnixTime -> Text -> RIO Env MessageList
-getMessageList' t ts cid = do
-  logDebug (display $ "fetching slack messages from " <> cid)
-  runReq defaultHttpConfig $ responseBody <$> getMessageList t ts cid
-
-getMessageList :: SlackToken -> UnixTime -> Text -> Req (JsonResponse MessageList)
-getMessageList token ts cid = req GET url NoReqBody jsonResponse params
-  where
-    url    = https "slack.com" /: "api" /: "channels.history"
-    params = mconcat
-      [ "token"   =: token
-      , "channel" =: cid
-      , "oldest"  =: ts
-      , "inclusive" =: True
-      ]
+    url = https "slack.com" /: "api" /: "channels.history"
