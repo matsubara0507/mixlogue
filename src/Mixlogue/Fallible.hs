@@ -41,3 +41,7 @@ infixl 1 !??
 exit :: m r -> ContT r m a
 exit = ContT . const
 {-# INLINE exit #-}
+
+exit' :: Applicative m => r -> ContT r m a
+exit' = exit . pure
+{-# INLINE exit' #-}
