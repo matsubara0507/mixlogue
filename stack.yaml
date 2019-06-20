@@ -10,3 +10,5 @@ extra-deps:
   subdirs:
   - mix
   - mix-json-logger
+  sha256: 8dfebec78066521d8f5c521293ca3038dec0a70d20c65e5118342e1c96b85e9d
+  size: 8176
