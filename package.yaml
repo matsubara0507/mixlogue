@@ -48,7 +48,7 @@ dependencies:
 - extensible >= 0.4.9
 - mix
 - mix-json-logger
-- mtl
+- transformers
 - req >= 2.0.0
 
 library:

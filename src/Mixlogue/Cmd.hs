@@ -1,15 +1,16 @@
 module Mixlogue.Cmd where
 
 import           RIO
-import qualified RIO.List               as L
-import qualified RIO.Map                as Map
-import qualified RIO.Text               as Text
+import qualified RIO.List                 as L
+import qualified RIO.Map                  as Map
+import qualified RIO.Text                 as Text
 
+import           Control.Monad.Trans.Cont (evalContT)
 import           Data.Extensible
-import qualified Mix.Plugin.Logger.JSON as Mix
+import qualified Mix.Plugin.Logger.JSON   as Mix
 import           Mixlogue.Env
-import qualified Mixlogue.MIO           as MIO
-import qualified Mixlogue.Slack.API     as Slack
+import           Mixlogue.Fallible        (exit, (!??))
+import qualified Mixlogue.Slack.API       as Slack
 
 run :: Cmd -> RIO Env ()
 run (ShowTimestamp ts) = logInfo $ display ts
@@ -46,12 +47,12 @@ watchMessages ts = do
     withSleep n act = threadDelay (n * 1_000_000) >> act
 
 showMessages :: TVar Cache -> Slack.Channel -> RIO Env ()
-showMessages cache ch = MIO.eval $ do
+showMessages cache ch = evalContT $ do
   lift $ Mix.logDebugR "show messages" ch
   token <- lift $ asks (view #token)
-  ts    <- readOldest `MIO.with` Mix.logWarnR "channel not found" ch
+  ts    <- readOldest !?? exit (Mix.logWarnR "channel not found" ch)
   msgs  <- lift $ Slack.fetchMessages token ts ch
-  ts'   <- pure (L.maximumMaybe $ view #ts <$> msgs) `MIO.with` pure ()
+  ts'   <- pure (L.maximumMaybe $ view #ts <$> msgs) !?? exit (pure ())
   liftIO $ atomically (modifyTVar' cache $ Map.insert (ch ^. #id) $ ts' <> "1")
   forM_ msgs $ \m ->
     Mix.logInfoR "slack message" (#channel @= (ch ^. #name) <: m)
