@@ -51,7 +51,7 @@ dependencies:
 - http-api-data
 - mix
 - mix-json-logger
-- transformers
+- fallible
 - req >= 2.0.0
 
 library:

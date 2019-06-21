@@ -12,3 +12,7 @@ extra-deps:
   - mix-json-logger
   sha256: 8dfebec78066521d8f5c521293ca3038dec0a70d20c65e5118342e1c96b85e9d
   size: 8176
+- github: matsubara0507/fallible
+  commit: 4a7d965fc8128640ec750b28f7df49be88448286
+  sha256: d572dddea4d784664177f22a37d5fb88c75bf1eef36a968322e9c510630c199c
+  size: 3882

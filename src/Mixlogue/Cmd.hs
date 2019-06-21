@@ -1,16 +1,15 @@
 module Mixlogue.Cmd where
 
 import           RIO
-import qualified RIO.List                 as L
-import qualified RIO.Map                  as Map
-import qualified RIO.Text                 as Text
+import qualified RIO.List               as L
+import qualified RIO.Map                as Map
+import qualified RIO.Text               as Text
 
-import           Control.Monad.Trans.Cont (evalContT)
 import           Data.Extensible
-import qualified Mix.Plugin.Logger.JSON   as Mix
+import           Data.Fallible          (evalContT, exit, exitA, (!??), (???))
+import qualified Mix.Plugin.Logger.JSON as Mix
 import           Mixlogue.Env
-import           Mixlogue.Fallible        (exit, exit', (!??), (???))
-import qualified Mixlogue.Slack           as Slack
+import qualified Mixlogue.Slack         as Slack
 
 run :: Cmd -> RIO Env ()
 run (ShowTimestamp ts) = logInfo $ display ts
@@ -52,7 +51,7 @@ showMessages cache ch = evalContT $ do
   token <- lift $ asks (view #token)
   ts    <- readOldest !?? exit (Mix.logWarnR "channel not found" ch)
   msgs  <- lift $ Slack.fetchMessages token ts ch
-  ts'   <- L.maximumMaybe (view #ts <$> msgs) ??? exit' ()
+  ts'   <- L.maximumMaybe (view #ts <$> msgs) ??? exitA ()
   atomically (modifyTVar' cache $ Map.insert (ch ^. #id) $ ts' <> "1")
   forM_ msgs $ \m ->
     Mix.logInfoR "slack message" (#channel @= (ch ^. #name) <: m)
