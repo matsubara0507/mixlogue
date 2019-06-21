@@ -8,10 +8,26 @@ import           Network.HTTP.Req
 import           Web.Internal.HttpApiData (ToHttpApiData)
 
 toQueryParam ::
-  Forall (KeyValue KnownSymbol ToHttpApiData) xs => Record xs -> Option scheme
+  Forall (KeyValue KnownSymbol ToQueryParam) xs => Record xs -> Option scheme
 toQueryParam =
-  hfoldMapWithIndexFor (Proxy @ (KeyValue KnownSymbol ToHttpApiData)) $ \m x ->
-  let k = fromString (symbolVal $ proxyAssocKey m) in k =: runIdentity (getField x)
+  hfoldMapWithIndexFor (Proxy @ (KeyValue KnownSymbol ToQueryParam)) $ \m x ->
+  let k = fromString (symbolVal $ proxyAssocKey m) in k ==: runIdentity (getField x)
+
+class ToHttpApiData a => ToQueryParam a where
+  (==:) :: (QueryParam param, Monoid param) => Text -> a -> param
+
+instance ToQueryParam Bool where
+  (==:) = (=:)
+
+instance ToQueryParam Text where
+  (==:) = (=:)
+
+instance ToQueryParam Int where
+  (==:) = (=:)
+
+instance ToQueryParam a => ToQueryParam (Maybe a) where
+  _ ==: Nothing  = mempty
+  k ==: (Just a) = k =: a
 
 class Optional a where
   none :: a
