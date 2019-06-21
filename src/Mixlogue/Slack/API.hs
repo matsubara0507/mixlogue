@@ -1,5 +1,7 @@
 module Mixlogue.Slack.API
-  ( ChannelId
+  ( UserId
+  , User
+  , ChannelId
   , Channel
   , ChannelList
   , ChannelListParams
@@ -19,6 +21,13 @@ import qualified Mix.Plugin.Logger.JSON as Mix
 import           Mixlogue.Env
 import           Mixlogue.Slack.Utils   (toQueryParam)
 import           Network.HTTP.Req
+
+type UserId = Text
+
+type User = Record
+  '[ "id"   >: UserId
+   , "name" >: Text
+   ]
 
 type ChannelId = Text
 

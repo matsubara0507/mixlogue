@@ -8,6 +8,8 @@ import qualified RIO.Text               as Text
 import           Data.Extensible
 import           Data.Fallible          (evalContT, exit, exitA, (!??), (???))
 import qualified Mix.Plugin.Logger.JSON as Mix
+import           Mixlogue.Cache         (Cache)
+import qualified Mixlogue.Cache         as Cache
 import           Mixlogue.Env
 import qualified Mixlogue.Slack         as Slack
 
@@ -40,25 +42,20 @@ watchMessages :: UnixTime -> RIO Env ()
 watchMessages ts = do
   Mix.logDebugR "oldest timestamp" (#ts @= ts <: nil)
   channels <- fetchTimesChannels
-  cache    <- newTVarIO (iniCache ts channels)
+  cache    <- Cache.init ts channels
   forever $ forM_ channels (withSleep 5 . showMessages cache)
   where
     withSleep n act = threadDelay (n * 1_000_000) >> act
 
-showMessages :: TVar Cache -> Slack.Channel -> RIO Env ()
+showMessages :: Cache -> Slack.Channel -> RIO Env ()
 showMessages cache ch = evalContT $ do
   lift $ Mix.logDebugR "show messages" ch
   token <- lift $ asks (view #token)
   ts    <- readOldest !?? exit (Mix.logWarnR "channel not found" ch)
   msgs  <- lift $ Slack.fetchMessages token ts ch
   ts'   <- L.maximumMaybe (view #ts <$> msgs) ??? exitA ()
-  atomically (modifyTVar' cache $ Map.insert (ch ^. #id) $ ts' <> "1")
+  atomically (modifyTVar' (cache ^. #latests) $ Map.insert (ch ^. #id) $ ts' <> "1")
   forM_ msgs $ \m ->
     Mix.logInfoR "slack message" (#channel @= (ch ^. #name) <: m)
   where
-    readOldest = Map.lookup (ch ^. #id) <$> readTVarIO cache
-
-type Cache = Map Text UnixTime
-
-iniCache :: UnixTime -> [Slack.Channel] -> Map Text UnixTime
-iniCache ts = Map.fromList . map (,ts) . map (view #id)
+    readOldest = Map.lookup (ch ^. #id) <$> readTVarIO (cache ^. #latests)
