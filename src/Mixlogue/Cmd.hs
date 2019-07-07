@@ -1,10 +1,13 @@
 module Mixlogue.Cmd where
 
 import           RIO
+import qualified RIO.ByteString.Lazy    as BL
+import           RIO.Directory          (doesFileExist)
 import qualified RIO.List               as L
 import qualified RIO.Map                as Map
 import qualified RIO.Text               as Text
 
+import qualified Data.Aeson             as J
 import           Data.Extensible
 import           Data.Fallible          (evalContT, exit, exitA, (!??), (???))
 import qualified Mix.Plugin.Logger.JSON as Mix
@@ -29,8 +32,18 @@ data Cmd
 
 showChannels :: RIO Env ()
 showChannels = do
-  channels <- fetchTimesChannels
+  channels <- getChannelsWithLocalCache
   forM_ channels $ \c -> logInfo (display $ c ^. #name)
+
+getChannelsWithLocalCache :: RIO Env [Slack.Channel]
+getChannelsWithLocalCache = do
+  path    <- cacheChannelsFilePath
+  isExist <- doesFileExist path
+  flag    <- asks (view #update_local_cache)
+  when (not isExist || flag) $ do
+    Mix.logDebugR "write channels to local cache" (#path @= path <: nil)
+    BL.writeFile path =<< fmap J.encode fetchTimesChannels
+  readChannels path
 
 fetchTimesChannels :: RIO Env [Slack.Channel]
 fetchTimesChannels =
@@ -39,10 +52,17 @@ fetchTimesChannels =
     isTimes :: Slack.Channel -> Bool
     isTimes = Text.isPrefixOf "times_" . view #name
 
+readChannels :: FilePath -> RIO Env [Slack.Channel]
+readChannels path = evalContT $ do
+  Mix.logDebugR "read channels from local cache" (#path @= path <: nil)
+  J.decode <$> BL.readFile path !?? (logError emessage >> pure [])
+  where
+    emessage = "can't decode local cache as slack channels"
+
 watchMessages :: UnixTime -> RIO Env ()
 watchMessages ts = do
   Mix.logDebugR "oldest timestamp" (#ts @= ts <: nil)
-  channels <- fetchTimesChannels
+  channels <- getChannelsWithLocalCache
   cache    <- Cache.init ts channels
   forever $ forM_ channels (withSleep 5 . showMessages cache)
   where

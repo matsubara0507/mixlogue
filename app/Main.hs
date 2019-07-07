@@ -26,6 +26,7 @@ main = withGetOpt "[options]" opts $ \r _args -> do
     opts = #version @= versionOpt
         <: #verbose @= verboseOpt
         <: #ls      @= lsOpt
+        <: #update  @= updateOpt
         <: #ts      @= tsOpt
         <: #before  @= beforeOpt
         <: nil
@@ -34,6 +35,7 @@ type Options = Record
   '[ "version" >: Bool
    , "verbose" >: Bool
    , "ls"      >: Bool
+   , "update"  >: Bool
    , "ts"      >: Bool
    , "before"  >: Integer
    ]
@@ -54,12 +56,16 @@ beforeOpt :: OptDescr' Integer
 beforeOpt =
   fromMaybe 60 . (readMaybe =<<) <$> optLastArg [] ["before"] "TIME" "Set what minutes ago to collect messages from"
 
+updateOpt :: OptDescr' Bool
+updateOpt = optFlag [] ["update"] "Update local cache: slack channels"
+
 runCmd :: Options -> Cmd -> IO ()
 runCmd opts cmd = do
   token <- liftIO $ fromString <$> getEnv "SLACK_TOKEN"
   let plugin = hsequence
          $ #logger <@=> MixLogger.buildPlugin logOpts
         <: #token  <@=> pure token
+        <: #update_local_cache <@=> pure (opts ^. #update)
         <: nil
   Mix.run plugin $ Cmd.run cmd
   where
