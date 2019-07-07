@@ -1,6 +1,8 @@
 module Mixlogue.Slack.API
   ( UserId
   , User
+  , UserInfo
+  , UserInfoParams
   , ChannelId
   , Channel
   , ChannelList
@@ -12,6 +14,8 @@ module Mixlogue.Slack.API
   , getChannelList'
   , getMessageList
   , getMessageList'
+  , getUserInfo
+  , getUserInfo'
   ) where
 
 import           RIO
@@ -27,6 +31,15 @@ type UserId = Text
 type User = Record
   '[ "id"   >: UserId
    , "name" >: Text
+   ]
+
+type UserInfo = Record
+  '[ "user" >: User
+   ]
+
+type UserInfoParams = Record
+  '[ "user"           >: UserId
+   , "include_locale" >: Maybe Bool
    ]
 
 type ChannelId = Text
@@ -93,6 +106,17 @@ getMessageList' :: SlackToken -> MessageListParams -> RIO Env MessageList
 getMessageList' token params = do
   Mix.logDebugR "fetching slack messages" params
   runReq defaultHttpConfig $ responseBody <$> getMessageList token params
+
+getUserInfo :: SlackToken -> UserInfoParams -> Req (JsonResponse UserInfo)
+getUserInfo token =
+  req GET url NoReqBody jsonResponse . toQueryParam . (`with` token)
+  where
+    url = https "slack.com" /: "api" /: "users.info"
+
+getUserInfo' :: SlackToken -> UserInfoParams -> RIO Env UserInfo
+getUserInfo' token params = do
+  Mix.logDebugR "fetching slack user" params
+  runReq defaultHttpConfig $ responseBody <$> getUserInfo token params
 
 with :: Record xs -> SlackToken -> Record ("token" >: SlackToken ': xs)
 with r token = #token @= token <: r

@@ -1,8 +1,11 @@
 module Mixlogue.Slack
   ( Channel
   , Message
+  , User
+  , UserId
   , fetchChannels
   , fetchMessages
+  , fetchUser
   ) where
 
 import           RIO
@@ -34,3 +37,8 @@ fetchMessages token ts ch = view #messages <$> getMessageList' token params
   where
     params  = (#channel @= ch ^. #id <: fromNullable none params')
     params' = wrench $ #oldest @= Just ts <: #inclusive @= Just True <: nil
+
+fetchUser :: SlackToken -> UserId -> RIO Env User
+fetchUser token uid = view #user <$> getUserInfo' token params
+  where
+    params = #user @= uid <: none

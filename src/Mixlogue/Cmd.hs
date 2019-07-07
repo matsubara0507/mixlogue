@@ -11,6 +11,7 @@ import qualified Mix.Plugin.Logger.JSON as Mix
 import           Mixlogue.Cache         (Cache)
 import qualified Mixlogue.Cache         as Cache
 import           Mixlogue.Env
+import qualified Mixlogue.Message       as Message
 import qualified Mixlogue.Slack         as Slack
 
 run :: Cmd -> RIO Env ()
@@ -55,8 +56,9 @@ showMessages cache ch = evalContT $ do
   msgs  <- lift $ Slack.fetchMessages token ts ch
   ts'   <- nextTimestamp msgs ??? exitA ()
   atomically (modifyTVar' (cache ^. #latests) $ Map.insert (ch ^. #id) ts')
-  forM_ msgs $ \m ->
-    Mix.logInfoR "slack message" (#channel @= (ch ^. #name) <: m)
+  forM_ msgs $ \msg -> lift (Message.build cache ch msg) >>= \case
+    Just info -> Mix.logInfoR "slack message" info
+    Nothing   -> pure ()
   where
     readOldest = Map.lookup (ch ^. #id) <$> readTVarIO (cache ^. #latests)
 
