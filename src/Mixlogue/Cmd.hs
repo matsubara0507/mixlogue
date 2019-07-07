@@ -53,9 +53,17 @@ showMessages cache ch = evalContT $ do
   token <- lift $ asks (view #token)
   ts    <- readOldest !?? exit (Mix.logWarnR "channel not found" ch)
   msgs  <- lift $ Slack.fetchMessages token ts ch
-  ts'   <- L.maximumMaybe (view #ts <$> msgs) ??? exitA ()
-  atomically (modifyTVar' (cache ^. #latests) $ Map.insert (ch ^. #id) $ ts' <> "1")
+  ts'   <- nextTimestamp msgs ??? exitA ()
+  atomically (modifyTVar' (cache ^. #latests) $ Map.insert (ch ^. #id) ts')
   forM_ msgs $ \m ->
     Mix.logInfoR "slack message" (#channel @= (ch ^. #name) <: m)
   where
     readOldest = Map.lookup (ch ^. #id) <$> readTVarIO (cache ^. #latests)
+
+nextTimestamp :: [Slack.Message] -> Maybe UnixTime
+nextTimestamp msgs = do
+  oldest <- L.maximumMaybe (view #ts <$> msgs)
+  tshow . (+ 1) <$> toInt oldest
+  where
+    toInt :: UnixTime -> Maybe Int
+    toInt = readMaybe . Text.unpack . Text.takeWhile (/= '.')
