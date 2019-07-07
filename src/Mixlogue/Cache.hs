@@ -19,3 +19,11 @@ init ts chs = hsequence
    <: #users    <@=> newTVarIO mempty
    <: #messages <@=> newTVarIO mempty
    <: nil
+
+with :: (MonadIO m, Ord k) => (k -> m v) -> TVar (Map k v) -> k -> m v
+with act cache key = Map.lookup key <$> readTVarIO cache >>= \case
+  Just user -> pure user
+  Nothing   -> do
+    value <- act key
+    atomically (modifyTVar' cache $ Map.insert key value)
+    pure value
