@@ -29,8 +29,12 @@ fetchChannels token = go [] <*> toCursor =<< get Nothing
     go acc cs _ = go (cs ^. #channels <> acc) <*> toCursor =<< get (Just cs)
 
     toParams :: Int -> Maybe Text -> ChannelListParams
-    toParams l c =
-      fromNullable none (wrench $ #limit @= Just l <: #cursor @= c <: nil)
+    toParams l c = fromNullable none $ wrench
+        $ #limit            @= Just l
+       <: #exclude_archived @= Just True
+       <: #exclude_members  @= Just True
+       <: #cursor           @= c
+       <: nil
 
 fetchMessages :: SlackToken -> UnixTime -> Channel -> RIO Env [Message]
 fetchMessages token ts ch = view #messages <$> getMessageList' token params
