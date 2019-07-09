@@ -84,9 +84,9 @@ showMessages cache ch = evalContT $ do
   msgs  <- lift $ Slack.fetchMessages token ts ch
   ts'   <- nextTimestamp msgs ??? exitA ()
   atomically (modifyTVar' (cache ^. #latests) $ Map.insert (ch ^. #id) ts')
-  forM_ msgs $ \msg -> lift (Message.build cache ch msg) >>= \case
-    Just info -> Mix.logInfoR "slack message" info
-    Nothing   -> pure ()
+  infos <- catMaybes <$> mapM (lift . Message.build cache ch) msgs
+  forM_ infos $ \info -> Mix.logInfoR "slack message" info
+  atomically $ modifyTVar' (cache ^. #messages) (updateMessages infos)
   where
     readOldest = Map.lookup (ch ^. #id) <$> readTVarIO (cache ^. #latests)
 
@@ -97,3 +97,7 @@ nextTimestamp msgs = do
   where
     toInt :: UnixTime -> Maybe Int
     toInt = readMaybe . Text.unpack . Text.takeWhile (/= '.')
+
+updateMessages :: [Message.Info] -> [Message.Info] -> [Message.Info]
+updateMessages new old =
+  L.take 100 $ L.reverse $ L.sortOn (view #ts) (new <> old)
