@@ -49,11 +49,16 @@ dependencies:
 - rio >= 0.1.1.0
 - extensible >= 0.4.9
 - aeson
+- blaze-html
+- fallible
 - http-api-data
 - mix
 - mix-json-logger
-- fallible
 - req >= 2.0.0
+- servant-blaze
+- servant-server
+- unliftio
+- warp
 
 library:
   source-dirs: src

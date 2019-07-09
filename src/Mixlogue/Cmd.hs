@@ -1,21 +1,24 @@
 module Mixlogue.Cmd where
 
 import           RIO
-import qualified RIO.ByteString.Lazy    as BL
-import           RIO.Directory          (doesFileExist)
-import qualified RIO.List               as L
-import qualified RIO.Map                as Map
-import qualified RIO.Text               as Text
+import qualified RIO.ByteString.Lazy      as BL
+import           RIO.Directory            (doesFileExist)
+import qualified RIO.List                 as L
+import qualified RIO.Map                  as Map
+import qualified RIO.Text                 as Text
 
-import qualified Data.Aeson             as J
+import qualified Data.Aeson               as J
 import           Data.Extensible
-import           Data.Fallible          (evalContT, exit, exitA, (!??), (???))
-import qualified Mix.Plugin.Logger.JSON as Mix
-import           Mixlogue.Cache         (Cache)
-import qualified Mixlogue.Cache         as Cache
+import           Data.Fallible            (evalContT, exit, exitA, (!??), (???))
+import qualified Mix.Plugin.Logger.JSON   as Mix
+import           Mixlogue.App             (app)
+import           Mixlogue.Cache           (Cache)
+import qualified Mixlogue.Cache           as Cache
 import           Mixlogue.Env
-import qualified Mixlogue.Message       as Message
-import qualified Mixlogue.Slack         as Slack
+import qualified Mixlogue.Message         as Message
+import qualified Mixlogue.Slack           as Slack
+import qualified Network.Wai.Handler.Warp as Warp
+import           UnliftIO.Concurrent      (forkIO)
 
 run :: Cmd -> RIO Env ()
 run (ShowTimestamp ts) = logInfo $ display ts
@@ -64,9 +67,14 @@ watchMessages ts = do
   Mix.logDebugR "oldest timestamp" (#ts @= ts <: nil)
   channels <- getChannelsWithLocalCache
   cache    <- Cache.init ts channels
-  forever $ forM_ channels (withSleep 5 . showMessages cache)
+  _ <- forkIO $ forever $ forM_ channels (withSleep 5 . showMessages cache)
+  logInfo "Please accsess to localhost:8080"
+  runServer 8080 cache
   where
     withSleep n act = threadDelay (n * 1_000_000) >> act
+
+runServer :: MonadIO m => Int -> Cache -> m ()
+runServer port = liftIO . Warp.run port . app
 
 showMessages :: Cache -> Slack.Channel -> RIO Env ()
 showMessages cache ch = evalContT $ do

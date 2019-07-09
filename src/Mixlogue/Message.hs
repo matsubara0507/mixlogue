@@ -7,16 +7,10 @@ import           RIO
 
 import           Data.Extensible
 import           Data.Fallible
-import           Mixlogue.Cache  (Cache, with)
+import           Mixlogue.Cache        (Cache, with)
 import           Mixlogue.Env
-import qualified Mixlogue.Slack  as Slack
-
-type Info = Record
-  '[ "user"    >: Slack.User
-   , "text"    >: Text
-   , "channel" >: Slack.Channel
-   , "ts"      >: UnixTime
-   ]
+import           Mixlogue.Message.Type
+import qualified Mixlogue.Slack        as Slack
 
 build :: Cache -> Slack.Channel -> Slack.Message -> RIO Env (Maybe Info)
 build cache ch msg = evalContT $ do
