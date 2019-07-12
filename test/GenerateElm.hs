@@ -37,5 +37,5 @@ main :: IO ()
 main = do
   specsToDir [spec] "elm-src"
   shelly $ do
-    -- run_ "elm" ["make", "elm-src/Main.elm", "--output=static/main.js"]
+    run_ "elm" ["make", "elm-src/Main.elm", "--output=static/main.js"]
     run_ "elm-format" ["--yes", "elm-src/Generated/"]

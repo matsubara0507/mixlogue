@@ -22,3 +22,6 @@ cabal.project.local~
 .ghc.environment.*
 *.cabal
 stack.yaml.lock
+.elm
+main.js
+elm-stuff
