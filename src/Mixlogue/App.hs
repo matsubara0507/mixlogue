@@ -16,7 +16,9 @@ app = serve api . server
 
 type API = Get '[HTML] H.Html
       :<|> "static" :> Raw
-      :<|> "api"    :> "messages" :> Get '[JSON] [Message.Info]
+      :<|> "api"    :> GetMessagesAPI
+
+type GetMessagesAPI = "messages" :> Get '[JSON] [Message.Info]
 
 api :: Proxy API
 api = Proxy

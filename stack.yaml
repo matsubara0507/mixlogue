@@ -16,3 +16,5 @@ extra-deps:
   commit: 4a7d965fc8128640ec750b28f7df49be88448286
   sha256: d572dddea4d784664177f22a37d5fb88c75bf1eef36a968322e9c510630c199c
   size: 3882
+- github: matsubara0507/elm-export
+  commit: 0a05fecf56f84aa2ad998200a03c7df2a1676c0c

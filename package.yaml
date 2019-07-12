@@ -50,6 +50,7 @@ dependencies:
 - extensible >= 0.4.9
 - aeson
 - blaze-html
+- elm-export
 - fallible
 - http-api-data
 - mix
@@ -80,4 +81,12 @@ tests:
     - mixlogue
     - tasty
     - tasty-hspec
+    other-modules: []
+  generateElm:
+    main: GenerateElm.hs
+    source-dirs: test
+    dependencies:
+    - mixlogue
+    - servant-elm
+    - shelly
     other-modules: []

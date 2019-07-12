@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 module Mixlogue.Slack.API
   ( UserId
   , User
@@ -21,6 +23,8 @@ module Mixlogue.Slack.API
 import           RIO
 
 import           Data.Extensible
+import           Elm                    (ElmType (..))
+import           Language.Elm
 import qualified Mix.Plugin.Logger.JSON as Mix
 import           Mixlogue.Env
 import           Mixlogue.Slack.Utils   (toQueryParam)
@@ -29,9 +33,13 @@ import           Network.HTTP.Req
 type UserId = Text
 
 type User = Record
-  '[ "id"   >: UserId
-   , "name" >: Text
+  '[ "id"    >: UserId
+   , "name"  >: Text
+   , "color" >: Text
    ]
+
+instance ElmType User where
+  toElmType = toElmRecordType "User"
 
 type UserInfo = Record
   '[ "user" >: User
@@ -48,6 +56,9 @@ type Channel = Record
   '[ "id"   >: ChannelId
    , "name" >: Text
    ]
+
+instance ElmType Channel where
+  toElmType = toElmRecordType "Channel"
 
 type ChannelList = Record
   '[ "channels"          >: [Channel]
