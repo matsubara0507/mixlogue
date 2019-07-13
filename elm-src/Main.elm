@@ -3,7 +3,7 @@ module Main exposing (Model, Msg(..), init, main, subscriptions, update, view)
 import Browser as Browser
 import Generated.API as API exposing (..)
 import Html exposing (..)
-import Html.Attributes exposing (class, style)
+import Html.Attributes exposing (class, href, style)
 import Http
 import Task
 import Time exposing (Posix)
@@ -51,24 +51,28 @@ init _ =
 
 view : Model -> Html Msg
 view model =
-    div [] (List.map (viewMessage model) model.messages)
+    div [ class "container-md p-3" ]
+        [ div [ class "Box" ]
+            [ div [ class "Box-header" ]
+                [ h3 [] [ text "Mixlogue" ] ]
+            , div [] (List.map (viewMessage model) model.messages)
+            ]
+        ]
 
 
 viewMessage : Model -> API.Message -> Html Msg
 viewMessage model msg =
-    div [ class "message container-lg clearfix" ]
-        [ div [ class "message-info col-2 float-left p-2" ]
-            [ div [ class "message-date" ]
-                [ text (Maybe.withDefault "" <| TimeStamp.toDate model.zone msg.ts) ]
-            , div [ class "message-channel pl-1" ]
-                [ text (" in #" ++ msg.channel.name) ]
-            ]
-        , div [ class "message-body col-6 float-left p-2" ]
-            [ div [ class "message-user", style "color" msg.user.color ]
+    div [ class "message Box-row" ]
+        [ div [ class "message-header" ]
+            [ h4 [ class "message-user d-inline", style "color" msg.user.color ]
                 [ text msg.user.name ]
-            , pre [ class "message-content pl-1" ]
-                [ text msg.text ]
+            , span [ class "message-info pl-2", style "color" "#616061" ]
+                [ text (Maybe.withDefault "" <| TimeStamp.toDate model.zone msg.ts)
+                , text (" in #" ++ msg.channel.name)
+                ]
             ]
+        , div [ class "message-content" ]
+            [ pre [ class "f4" ] [ text msg.text ] ]
         ]
 
 
