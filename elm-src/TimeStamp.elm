@@ -1,4 +1,4 @@
-module TimeStamp exposing (TimeStamp, dayToString, format, monthToString, toDate, toInt)
+module TimeStamp exposing (TimeStamp, dayToString, format, monthToString, toDate, toMilis)
 
 import Time
 import Time.Extra as Time
@@ -10,17 +10,18 @@ type alias TimeStamp =
 
 toDate : Time.Zone -> TimeStamp -> Maybe String
 toDate zone ts =
-    toInt ts
+    toMilis ts
         |> Maybe.map Time.millisToPosix
         |> Maybe.map (Time.posixToParts zone)
         |> Maybe.map format
 
 
-toInt : TimeStamp -> Maybe Int
-toInt ts =
+toMilis : TimeStamp -> Maybe Int
+toMilis ts =
     String.split "." ts
         |> List.head
         |> Maybe.andThen String.toInt
+        |> Maybe.map (\n -> n * 1000)
 
 
 format : Time.Parts -> String
