@@ -1,10 +1,31 @@
-module Generated.API exposing (Channel, Message, User, decodeChannel, decodeMessage, decodeUser, encodeChannel, encodeMessage, encodeUser, getApiMessages)
+module Generated.API exposing (Channel, Config, Message, User, decodeChannel, decodeConfig, decodeMessage, decodeUser, encodeChannel, encodeConfig, encodeMessage, encodeUser, getApiConfig, getApiMessages)
 
 import Http
 import Json.Decode exposing (..)
 import Json.Decode.Pipeline exposing (..)
 import Json.Encode
 import String
+
+
+type alias Config =
+    { workspace : Maybe String
+    , interval : Int
+    }
+
+
+decodeConfig : Decoder Config
+decodeConfig =
+    Json.Decode.succeed Config
+        |> required "workspace" (maybe string)
+        |> required "interval" int
+
+
+encodeConfig : Config -> Json.Encode.Value
+encodeConfig x =
+    Json.Encode.object
+        [ ( "workspace", (Maybe.withDefault Json.Encode.null << Maybe.map Json.Encode.string) x.workspace )
+        , ( "interval", Json.Encode.int x.interval )
+        ]
 
 
 type alias User =
@@ -96,6 +117,30 @@ getApiMessages =
             Http.emptyBody
         , expect =
             Http.expectJson (list decodeMessage)
+        , timeout =
+            Nothing
+        , withCredentials =
+            False
+        }
+
+
+getApiConfig : Http.Request Config
+getApiConfig =
+    Http.request
+        { method =
+            "GET"
+        , headers =
+            []
+        , url =
+            String.join "/"
+                [ ""
+                , "api"
+                , "config"
+                ]
+        , body =
+            Http.emptyBody
+        , expect =
+            Http.expectJson decodeConfig
         , timeout =
             Nothing
         , withCredentials =

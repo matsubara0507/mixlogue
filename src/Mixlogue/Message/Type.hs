@@ -5,7 +5,6 @@ module Mixlogue.Message.Type where
 import           RIO
 
 import           Data.Extensible
-import           Elm             (ElmType (..))
 import           Language.Elm
 import           Mixlogue.Env    (UnixTime)
 import qualified Mixlogue.Slack  as Slack

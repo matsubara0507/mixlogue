@@ -1,4 +1,4 @@
-module TimeStamp exposing (TimeStamp, dayToString, format, monthToString, toDate, toMilis)
+module TimeStamp exposing (TimeStamp, dayToString, format, monthToString, toDate, toMilis, withoutDot)
 
 import Time
 import Time.Extra as Time
@@ -100,3 +100,8 @@ dayToString day =
 
         ( _, _, _ ) ->
             String.fromInt day ++ "th"
+
+
+withoutDot : TimeStamp -> TimeStamp
+withoutDot ts =
+    String.split "." ts |> String.concat

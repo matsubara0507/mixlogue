@@ -23,7 +23,6 @@ module Mixlogue.Slack.API
 import           RIO
 
 import           Data.Extensible
-import           Elm                    (ElmType (..))
 import           Language.Elm
 import qualified Mix.Plugin.Logger.JSON as Mix
 import           Mixlogue.Env

@@ -64,17 +64,19 @@ readChannels path = evalContT $ do
 
 watchMessages :: UnixTime -> RIO Env ()
 watchMessages ts = do
+  conf     <- asks (view #config)
   Mix.logDebugR "oldest timestamp" (#ts @= ts <: nil)
   channels <- getChannelsWithLocalCache
   cache    <- Cache.init ts channels
-  _ <- forkIO $ forever $ forM_ channels (withSleep 5 . showMessages cache)
+  _ <- forkIO $ forever $
+    forM_ channels (withSleep (conf ^. #interval) . showMessages cache)
   logInfo "Please accsess to localhost:8080"
-  runServer 8080 cache
+  runServer 8080 conf cache
   where
     withSleep n act = threadDelay (n * 1_000_000) >> act
 
-runServer :: MonadIO m => Int -> Cache -> m ()
-runServer port = liftIO . Warp.run port . app
+runServer :: MonadIO m => Int -> Config -> Cache -> m ()
+runServer port conf = liftIO . Warp.run port . app conf
 
 showMessages :: Cache -> Slack.Channel -> RIO Env ()
 showMessages cache ch = evalContT $ do

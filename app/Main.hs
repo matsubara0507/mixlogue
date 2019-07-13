@@ -23,21 +23,25 @@ main = withGetOpt "[options]" opts $ \r _args -> do
      | r ^. #ls      -> runCmd r Cmd.ShowChannels
      | otherwise     -> runCmd r . Cmd.RunServer =<< toTimestamp (r ^. #before)
   where
-    opts = #version @= versionOpt
-        <: #verbose @= verboseOpt
-        <: #ls      @= lsOpt
-        <: #update  @= updateOpt
-        <: #ts      @= tsOpt
-        <: #before  @= beforeOpt
+    opts = #version   @= versionOpt
+        <: #verbose   @= verboseOpt
+        <: #ls        @= lsOpt
+        <: #update    @= updateOpt
+        <: #ts        @= tsOpt
+        <: #before    @= beforeOpt
+        <: #interval  @= intervalOpt
+        <: #workspace @= workspaceOpt
         <: nil
 
 type Options = Record
-  '[ "version" >: Bool
-   , "verbose" >: Bool
-   , "ls"      >: Bool
-   , "update"  >: Bool
-   , "ts"      >: Bool
-   , "before"  >: Integer
+  '[ "version"   >: Bool
+   , "verbose"   >: Bool
+   , "ls"        >: Bool
+   , "update"    >: Bool
+   , "ts"        >: Bool
+   , "before"    >: Integer
+   , "interval"  >: Int
+   , "workspace" >: Maybe Text
    ]
 
 versionOpt :: OptDescr' Bool
@@ -56,6 +60,14 @@ beforeOpt :: OptDescr' Integer
 beforeOpt =
   fromMaybe 60 . (readMaybe =<<) <$> optLastArg [] ["before"] "TIME" "Set what minutes ago to collect messages from"
 
+intervalOpt :: OptDescr' Int
+intervalOpt =
+  fromMaybe 5 . (readMaybe =<<) <$> optLastArg [] ["interval"] "TIME" "Set interval second to collect messages"
+
+workspaceOpt :: OptDescr' (Maybe Text)
+workspaceOpt =
+  (fmap fromString) <$> optLastArg [] ["workspace"] "TEXT" "Set slack workspace name for link"
+
 updateOpt :: OptDescr' Bool
 updateOpt = optFlag [] ["update"] "Update local cache: slack channels"
 
@@ -65,6 +77,7 @@ runCmd opts cmd = do
   let plugin = hsequence
          $ #logger <@=> MixLogger.buildPlugin logOpts
         <: #token  <@=> pure token
+        <: #config <@=> pure (shrink opts)
         <: #update_local_cache <@=> pure (opts ^. #update)
         <: nil
   Mix.run plugin $ Cmd.run cmd

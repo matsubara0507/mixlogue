@@ -3,6 +3,7 @@ module Mixlogue.App where
 import           RIO
 
 import           Mixlogue.Cache
+import           Mixlogue.Env                (Config)
 import qualified Mixlogue.Message            as Message
 import           Servant
 import           Servant.HTML.Blaze
@@ -11,22 +12,25 @@ import           Text.Blaze.Html5            ((!))
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as H
 
-app :: Cache -> Application
-app = serve api . server
+app :: Config -> Cache -> Application
+app conf = serve api . server conf
 
 type API = Get '[HTML] H.Html
       :<|> "static" :> Raw
       :<|> "api"    :> GetMessagesAPI
 
-type GetMessagesAPI = "messages" :> Get '[JSON] [Message.Info]
+type GetMessagesAPI
+      = "messages" :> Get '[JSON] [Message.Info]
+   :<|> "config"   :> Get '[JSON] Config
 
 api :: Proxy API
 api = Proxy
 
-server :: Cache -> Server API
-server cache = indexHtml
+server :: Config -> Cache -> Server API
+server conf cache = indexHtml
     :<|> serveDirectoryFileServer "static"
     :<|> readTVarIO (cache ^. #messages)
+    :<|> pure conf
   where
     indexHtml = pure $ H.docTypeHtml $ do
       H.head $ stylesheet primerCss

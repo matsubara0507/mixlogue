@@ -11,6 +11,7 @@ import           Elm              (ElmType, Spec (Spec), specsToDir,
                                    toElmDecoderSource, toElmEncoderSource,
                                    toElmTypeSource)
 import           Mixlogue.App     (GetMessagesAPI)
+import           Mixlogue.Env     (Config)
 import qualified Mixlogue.Message as Message
 import qualified Mixlogue.Slack   as Slack
 import           Servant          ((:>))
@@ -20,6 +21,7 @@ import           Shelly           (run_, shelly)
 spec :: Spec
 spec = Spec ["Generated", "API"] $ concat
             [ [defElmImports]
+            , toElmTypeAll      (Proxy @ Config)
             , toElmTypeAll      (Proxy @ Slack.User)
             , toElmTypeAll      (Proxy @ Slack.Channel)
             , toElmTypeAll      (Proxy @ Message.Info)
