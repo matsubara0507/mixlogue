@@ -3,7 +3,7 @@ module Main exposing (Model, Msg(..), init, main, subscriptions, update, view)
 import Browser as Browser
 import Generated.API as API exposing (..)
 import Html exposing (..)
-import Html.Attributes exposing (class)
+import Html.Attributes exposing (class, style)
 import Http
 import Task
 import Time exposing (Posix)
@@ -56,15 +56,19 @@ view model =
 
 viewMessage : Model -> API.Message -> Html Msg
 viewMessage model msg =
-    div [ class "message" ]
-        [ div [ class "message-date" ]
-            [ text (Maybe.withDefault "" <| TimeStamp.toDate model.zone msg.ts) ]
-        , div [ class "message-body" ]
-            [ div [ class "message-user" ] [ text msg.user.name ]
-            , span [ class "message-content" ] [ text msg.text ]
+    div [ class "message container-lg clearfix" ]
+        [ div [ class "message-info col-2 float-left p-2" ]
+            [ div [ class "message-date" ]
+                [ text (Maybe.withDefault "" <| TimeStamp.toDate model.zone msg.ts) ]
+            , div [ class "message-channel pl-1" ]
+                [ text (" in #" ++ msg.channel.name) ]
             ]
-        , div [ class "message-channel" ]
-            [ text ("in #" ++ msg.channel.name) ]
+        , div [ class "message-body col-6 float-left p-2" ]
+            [ div [ class "message-user", style "color" msg.user.color ]
+                [ text msg.user.name ]
+            , pre [ class "message-content pl-1" ]
+                [ text msg.text ]
+            ]
         ]
 
 
