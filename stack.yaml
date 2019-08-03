@@ -2,21 +2,16 @@ resolver: lts-13.24
 packages:
 - '.'
 extra-deps:
-- extensible-0.5
+- extensible-0.6
+- membership-0
 - req-2.0.1
 - retry-0.8.0.1
 - github: matsubara0507/mix.hs
-  commit: 2138a7a5a43443040893134f1170ce1643f0d498
+  commit: ff640c5209260dce210fa81292df923940608bb7
   subdirs:
   - mix
   - mix-json-logger
-  sha256: 8dfebec78066521d8f5c521293ca3038dec0a70d20c65e5118342e1c96b85e9d
-  size: 8176
 - github: matsubara0507/fallible
   commit: 4a7d965fc8128640ec750b28f7df49be88448286
-  sha256: d572dddea4d784664177f22a37d5fb88c75bf1eef36a968322e9c510630c199c
-  size: 3882
 - github: matsubara0507/elm-export
   commit: 0a05fecf56f84aa2ad998200a03c7df2a1676c0c
-  sha256: 7ecf44003c8e14530dc2a4f03b35e91ca617f2aaf3d2686d9762bece73fb03e4
-  size: 14805

@@ -30,9 +30,9 @@ elmTypeToElmValue (ElmPrimitive prim)  = ElmPrimitiveRef prim
 toElmRecordType :: ToElmValue a => Text -> a -> ElmDatatype
 toElmRecordType name = ElmDatatype name . RecordConstructor name . toElmValue
 
-instance Forall (KeyValue KnownSymbol ElmType) xs => ToElmValue (Record xs) where
+instance Forall (KeyTargetAre KnownSymbol ElmType) xs => ToElmValue (Record xs) where
   toElmValue = hfoldrWithIndexFor
-    (Proxy @ (KeyValue KnownSymbol ElmType))
+    (Proxy @ (KeyTargetAre KnownSymbol ElmType))
     (\k v m -> toElmField k v `append` m)
     ElmEmpty
     where
