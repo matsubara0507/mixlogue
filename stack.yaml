@@ -2,10 +2,12 @@ resolver: lts-13.24
 packages:
 - '.'
 extra-deps:
+- elm-bridge-0.5.1
 - extensible-0.6
 - membership-0
 - req-2.0.1
 - retry-0.8.0.1
+- servant-elm-0.6.0.2
 - github: matsubara0507/mix.hs
   commit: c6c303f9ddf4655a42804ee67d512af6d3b14e98
   subdirs:
@@ -13,5 +15,9 @@ extra-deps:
   - mix-json-logger
 - github: matsubara0507/fallible
   commit: 4a7d965fc8128640ec750b28f7df49be88448286
-- github: matsubara0507/elm-export
-  commit: 0a05fecf56f84aa2ad998200a03c7df2a1676c0c
+- github: matsubara0507/elmap.hs
+  commit: 42e9cbb9eca0a34dc8ebd3964afe560afec24a74
+  subdirs:
+  - elmap
+  - extensible-elmap
+  - servant-elmap

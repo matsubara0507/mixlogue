@@ -6,8 +6,9 @@ import           RIO
 import           RIO.Directory
 
 import           Data.Extensible
-import           Language.Elm
-import           Mix.Plugin.Logger ()
+import           Data.Extensible.Elm.Mapping
+import           Elm.Mapping
+import           Mix.Plugin.Logger           ()
 
 type Env = Record
   '[ "logger" >: LogFunc
@@ -25,8 +26,11 @@ type Config = Record
    , "interval"  >: Int
    ]
 
-instance ElmType Config where
-  toElmType = toElmRecordType "Config"
+instance IsElmType Config where
+  compileElmType = compileElmRecordTypeWith "Config"
+
+instance IsElmDefinition Config where
+  compileElmDef = ETypeAlias . compileElmRecordAliasWith "Config"
 
 cacheChannelsFilePath :: MonadIO m => m FilePath
 cacheChannelsFilePath = do

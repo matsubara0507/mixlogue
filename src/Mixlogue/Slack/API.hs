@@ -23,10 +23,11 @@ module Mixlogue.Slack.API
 import           RIO
 
 import           Data.Extensible
-import           Language.Elm
-import qualified Mix.Plugin.Logger.JSON as Mix
+import           Data.Extensible.Elm.Mapping
+import           Elm.Mapping
+import qualified Mix.Plugin.Logger.JSON      as Mix
 import           Mixlogue.Env
-import           Mixlogue.Slack.Utils   (toQueryParam)
+import           Mixlogue.Slack.Utils        (toQueryParam)
 import           Network.HTTP.Req
 
 type UserId = Text
@@ -37,8 +38,11 @@ type User = Record
    , "color" >: Text
    ]
 
-instance ElmType User where
-  toElmType = toElmRecordType "User"
+instance IsElmType User where
+  compileElmType = compileElmRecordTypeWith "User"
+
+instance IsElmDefinition User where
+  compileElmDef = ETypeAlias . compileElmRecordAliasWith "User"
 
 type UserInfo = Record
   '[ "user" >: User
@@ -56,8 +60,11 @@ type Channel = Record
    , "name" >: Text
    ]
 
-instance ElmType Channel where
-  toElmType = toElmRecordType "Channel"
+instance IsElmType Channel where
+  compileElmType = compileElmRecordTypeWith "Channel"
+
+instance IsElmDefinition Channel where
+  compileElmDef = ETypeAlias . compileElmRecordAliasWith "Channel"
 
 type ChannelList = Record
   '[ "channels"          >: [Channel]
