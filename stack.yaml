@@ -16,7 +16,7 @@ extra-deps:
 - github: matsubara0507/fallible
   commit: 4a7d965fc8128640ec750b28f7df49be88448286
 - github: matsubara0507/elmap.hs
-  commit: 42e9cbb9eca0a34dc8ebd3964afe560afec24a74
+  commit: a1539c3be6e8b5757a2a10a55e7c1b19c1fc76fd
   subdirs:
   - elmap
   - extensible-elmap
