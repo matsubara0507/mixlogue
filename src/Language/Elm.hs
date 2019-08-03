@@ -15,7 +15,7 @@ import           RIO
 
 import           Data.Extensible
 import           Elm
-import           GHC.TypeLits    (KnownSymbol, symbolVal)
+import           GHC.TypeLits    (KnownSymbol)
 
 class ToElmValue a where
   toElmValue :: a -> ElmValue
@@ -30,9 +30,9 @@ elmTypeToElmValue (ElmPrimitive prim)  = ElmPrimitiveRef prim
 toElmRecordType :: ToElmValue a => Text -> a -> ElmDatatype
 toElmRecordType name = ElmDatatype name . RecordConstructor name . toElmValue
 
-instance Forall (KeyValue KnownSymbol ElmType) xs => ToElmValue (Record xs) where
+instance Forall (KeyTargetAre KnownSymbol ElmType) xs => ToElmValue (Record xs) where
   toElmValue = hfoldrWithIndexFor
-    (Proxy @ (KeyValue KnownSymbol ElmType))
+    (Proxy @ (KeyTargetAre KnownSymbol ElmType))
     (\k v m -> toElmField k v `append` m)
     ElmEmpty
     where
@@ -42,5 +42,5 @@ instance Forall (KeyValue KnownSymbol ElmType) xs => ToElmValue (Record xs) wher
       append (Values a1 a2) a3 = Values a1 $ append a2 a3
       append a1 a2             = Values a1 a2
       toElmField k v = ElmField
-        (fromString . symbolVal $ proxyAssocKey k)
+        (stringKeyOf k)
         (elmTypeToElmValue . toElmType $ getField v)

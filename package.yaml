@@ -47,7 +47,7 @@ default-extensions:
 dependencies:
 - base >= 4.7 && < 5
 - rio >= 0.1.1.0
-- extensible >= 0.4.9
+- extensible >= 0.6
 - aeson
 - blaze-html
 - elm-export
