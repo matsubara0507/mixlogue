@@ -15,7 +15,7 @@ import           RIO
 
 import           Data.Extensible
 import           Elm
-import           GHC.TypeLits    (KnownSymbol, symbolVal)
+import           GHC.TypeLits    (KnownSymbol)
 
 class ToElmValue a where
   toElmValue :: a -> ElmValue
@@ -42,5 +42,5 @@ instance Forall (KeyTargetAre KnownSymbol ElmType) xs => ToElmValue (Record xs) 
       append (Values a1 a2) a3 = Values a1 $ append a2 a3
       append a1 a2             = Values a1 a2
       toElmField k v = ElmField
-        (fromString . symbolVal $ proxyAssocKey k)
+        (stringKeyOf k)
         (elmTypeToElmValue . toElmType $ getField v)
