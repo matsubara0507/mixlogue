@@ -51,9 +51,9 @@ init _ =
     in
     ( model
     , Cmd.batch
-        [ fetchConfig
+        [ API.getApiConfig FetchConfig
         , Task.perform FetchZone Time.here
-        , fetchMessages
+        , API.getApiMessages FetchMessages
         ]
     )
 
@@ -118,10 +118,10 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Fresh ->
-            ( model, fetchMessages )
+            ( model, API.getApiMessages FetchMessages )
 
         Tick _ ->
-            ( model, fetchMessages )
+            ( model, API.getApiMessages FetchMessages )
 
         FetchZone zone ->
             ( { model | zone = zone }, Cmd.none )
@@ -142,16 +142,6 @@ update msg model =
 
         FetchConfig (Err _) ->
             ( model, Cmd.none )
-
-
-fetchMessages : Cmd Msg
-fetchMessages =
-    Http.send FetchMessages API.getApiMessages
-
-
-fetchConfig : Cmd Msg
-fetchConfig =
-    Http.send FetchConfig API.getApiConfig
 
 
 subscriptions : Model -> Sub Msg

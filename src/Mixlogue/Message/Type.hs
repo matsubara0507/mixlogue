@@ -5,9 +5,10 @@ module Mixlogue.Message.Type where
 import           RIO
 
 import           Data.Extensible
-import           Language.Elm
-import           Mixlogue.Env    (UnixTime)
-import qualified Mixlogue.Slack  as Slack
+import           Data.Extensible.Elm.Mapping
+import           Elm.Mapping
+import           Mixlogue.Env                (UnixTime)
+import qualified Mixlogue.Slack              as Slack
 
 type Info = Record
   '[ "user"    >: Slack.User
@@ -16,5 +17,8 @@ type Info = Record
    , "ts"      >: UnixTime
    ]
 
-instance ElmType Info where
-  toElmType = toElmRecordType "Message"
+instance IsElmType Info where
+  compileElmType = compileElmRecordTypeWith "Message"
+
+instance IsElmDefinition Info where
+  compileElmDef = ETypeAlias . compileElmRecordAliasWith "Message"

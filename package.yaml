@@ -48,9 +48,10 @@ dependencies:
 - base >= 4.7 && < 5
 - rio >= 0.1.1.0
 - extensible >= 0.6
+- extensible-elmap
 - aeson
 - blaze-html
-- elm-export
+- elmap
 - fallible
 - http-api-data
 - mix
@@ -87,6 +88,6 @@ tests:
     source-dirs: test
     dependencies:
     - mixlogue
-    - servant-elm
+    - servant-elmap
     - shelly
     other-modules: []

@@ -1,10 +1,28 @@
-module Generated.API exposing (Channel, Config, Message, User, decodeChannel, decodeConfig, decodeMessage, decodeUser, encodeChannel, encodeConfig, encodeMessage, encodeUser, getApiConfig, getApiMessages)
+module Generated.API exposing (Channel, Config, Message, User, getApiConfig, getApiMessages, jsonDecChannel, jsonDecConfig, jsonDecMessage, jsonDecUser, jsonEncChannel, jsonEncConfig, jsonEncMessage, jsonEncUser, maybeBoolToIntStr)
 
+-- The following module comes from bartavelle/json-helpers
+
+import Dict exposing (Dict)
 import Http
-import Json.Decode exposing (..)
-import Json.Decode.Pipeline exposing (..)
-import Json.Encode
+import Json.Decode
+import Json.Encode exposing (Value)
+import Json.Helpers exposing (..)
+import Set
 import String
+import Url.Builder
+
+
+maybeBoolToIntStr : Maybe Bool -> String
+maybeBoolToIntStr mx =
+    case mx of
+        Nothing ->
+            ""
+
+        Just True ->
+            "1"
+
+        Just False ->
+            "0"
 
 
 type alias Config =
@@ -13,18 +31,18 @@ type alias Config =
     }
 
 
-decodeConfig : Decoder Config
-decodeConfig =
-    Json.Decode.succeed Config
-        |> required "workspace" (maybe string)
-        |> required "interval" int
+jsonDecConfig : Json.Decode.Decoder Config
+jsonDecConfig =
+    Json.Decode.succeed (\pworkspace pinterval -> { workspace = pworkspace, interval = pinterval })
+        |> fnullable "workspace" Json.Decode.string
+        |> required "interval" Json.Decode.int
 
 
-encodeConfig : Config -> Json.Encode.Value
-encodeConfig x =
+jsonEncConfig : Config -> Value
+jsonEncConfig val =
     Json.Encode.object
-        [ ( "workspace", (Maybe.withDefault Json.Encode.null << Maybe.map Json.Encode.string) x.workspace )
-        , ( "interval", Json.Encode.int x.interval )
+        [ ( "workspace", maybeEncode Json.Encode.string val.workspace )
+        , ( "interval", Json.Encode.int val.interval )
         ]
 
 
@@ -35,20 +53,20 @@ type alias User =
     }
 
 
-decodeUser : Decoder User
-decodeUser =
-    Json.Decode.succeed User
-        |> required "id" string
-        |> required "name" string
-        |> required "color" string
+jsonDecUser : Json.Decode.Decoder User
+jsonDecUser =
+    Json.Decode.succeed (\pid pname pcolor -> { id = pid, name = pname, color = pcolor })
+        |> required "id" Json.Decode.string
+        |> required "name" Json.Decode.string
+        |> required "color" Json.Decode.string
 
 
-encodeUser : User -> Json.Encode.Value
-encodeUser x =
+jsonEncUser : User -> Value
+jsonEncUser val =
     Json.Encode.object
-        [ ( "id", Json.Encode.string x.id )
-        , ( "name", Json.Encode.string x.name )
-        , ( "color", Json.Encode.string x.color )
+        [ ( "id", Json.Encode.string val.id )
+        , ( "name", Json.Encode.string val.name )
+        , ( "color", Json.Encode.string val.color )
         ]
 
 
@@ -58,18 +76,18 @@ type alias Channel =
     }
 
 
-decodeChannel : Decoder Channel
-decodeChannel =
-    Json.Decode.succeed Channel
-        |> required "id" string
-        |> required "name" string
+jsonDecChannel : Json.Decode.Decoder Channel
+jsonDecChannel =
+    Json.Decode.succeed (\pid pname -> { id = pid, name = pname })
+        |> required "id" Json.Decode.string
+        |> required "name" Json.Decode.string
 
 
-encodeChannel : Channel -> Json.Encode.Value
-encodeChannel x =
+jsonEncChannel : Channel -> Value
+jsonEncChannel val =
     Json.Encode.object
-        [ ( "id", Json.Encode.string x.id )
-        , ( "name", Json.Encode.string x.name )
+        [ ( "id", Json.Encode.string val.id )
+        , ( "name", Json.Encode.string val.name )
         ]
 
 
@@ -81,68 +99,82 @@ type alias Message =
     }
 
 
-decodeMessage : Decoder Message
-decodeMessage =
-    Json.Decode.succeed Message
-        |> required "user" decodeUser
-        |> required "text" string
-        |> required "channel" decodeChannel
-        |> required "ts" string
+jsonDecMessage : Json.Decode.Decoder Message
+jsonDecMessage =
+    Json.Decode.succeed (\puser ptext pchannel pts -> { user = puser, text = ptext, channel = pchannel, ts = pts })
+        |> required "user" jsonDecUser
+        |> required "text" Json.Decode.string
+        |> required "channel" jsonDecChannel
+        |> required "ts" Json.Decode.string
 
 
-encodeMessage : Message -> Json.Encode.Value
-encodeMessage x =
+jsonEncMessage : Message -> Value
+jsonEncMessage val =
     Json.Encode.object
-        [ ( "user", encodeUser x.user )
-        , ( "text", Json.Encode.string x.text )
-        , ( "channel", encodeChannel x.channel )
-        , ( "ts", Json.Encode.string x.ts )
+        [ ( "user", jsonEncUser val.user )
+        , ( "text", Json.Encode.string val.text )
+        , ( "channel", jsonEncChannel val.channel )
+        , ( "ts", Json.Encode.string val.ts )
         ]
 
 
-getApiMessages : Http.Request (List Message)
-getApiMessages =
+getApiMessages : (Result Http.Error (List Message) -> msg) -> Cmd msg
+getApiMessages toMsg =
+    let
+        params =
+            List.filterMap identity
+                (List.concat
+                    []
+                )
+    in
     Http.request
         { method =
             "GET"
         , headers =
             []
         , url =
-            String.join "/"
-                [ ""
-                , "api"
+            Url.Builder.crossOrigin ""
+                [ "api"
                 , "messages"
                 ]
+                params
         , body =
             Http.emptyBody
         , expect =
-            Http.expectJson (list decodeMessage)
+            Http.expectJson toMsg (Json.Decode.list jsonDecMessage)
         , timeout =
             Nothing
-        , withCredentials =
-            False
+        , tracker =
+            Nothing
         }
 
 
-getApiConfig : Http.Request Config
-getApiConfig =
+getApiConfig : (Result Http.Error Config -> msg) -> Cmd msg
+getApiConfig toMsg =
+    let
+        params =
+            List.filterMap identity
+                (List.concat
+                    []
+                )
+    in
     Http.request
         { method =
             "GET"
         , headers =
             []
         , url =
-            String.join "/"
-                [ ""
-                , "api"
+            Url.Builder.crossOrigin ""
+                [ "api"
                 , "config"
                 ]
+                params
         , body =
             Http.emptyBody
         , expect =
-            Http.expectJson decodeConfig
+            Http.expectJson toMsg jsonDecConfig
         , timeout =
             Nothing
-        , withCredentials =
-            False
+        , tracker =
+            Nothing
         }
