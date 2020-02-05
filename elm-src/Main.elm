@@ -73,7 +73,10 @@ viewMessage : Model -> API.Message -> Html Msg
 viewMessage model msg =
     div [ class "message Box-row" ]
         [ div [ class "message-header" ]
-            [ h4 [ class "message-user d-inline", style "color" msg.user.color ]
+            [ h4
+                [ class "message-user d-inline"
+                , style "color" (Maybe.withDefault "#000000" msg.user.color)
+                ]
                 [ text msg.user.name ]
             , viewMessageInfo model msg
             ]
