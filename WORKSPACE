@@ -77,3 +77,20 @@ stack_snapshot(
 
 # Download a GHC binary distribution from haskell.org and register it as a toolchain.
 rules_haskell_toolchains(version = "8.8.4")
+
+# Elm
+
+http_archive(
+  name = "rules_elm",
+  strip_prefix = "rules_elm-989a49811c21dfbf7b702b8788df532a70166e4d",
+  urls = ["https://github.com/matsubara0507/rules_elm/archive/989a49811c21dfbf7b702b8788df532a70166e4d.tar.gz"],
+  sha256 = "1ecf91e0433141ac0bf4436656a59b817e46b4efd1e5690ce526cc179b89ef47",
+)
+
+load("@rules_elm//elm:repositories.bzl", rules_elm_repositories = "repositories")
+
+rules_elm_repositories()
+
+load("@rules_elm//elm:toolchain.bzl", rules_elm_toolchains = "toolchains")
+
+rules_elm_toolchains(version = "0.19.1")

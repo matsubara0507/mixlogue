@@ -66,3 +66,13 @@ haskell_binary(
     ],
     compiler_flags = GHC_FLAGS,
 )
+
+load("@rules_elm//elm:def.bzl", "elm_make")
+
+elm_make(
+    name = "mainjs",
+    srcs = glob(["elm-src/**", "elm.json"]),
+    elm_json = "elm.json",
+    main = "elm-src/Main.elm",
+    output = "main.js",
+)
