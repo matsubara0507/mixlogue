@@ -1,0 +1,22 @@
+resolver: lts-16.28
+packages:
+- membership-0
+- extensible-0.8.1
+- incremental-0.3.1
+- github: matsubara0507/mix.hs
+  commit: 75714be080db16f6a4f9d0a22e86947ffcdadc57
+  subdirs:
+  - mix
+  - mix-json-logger
+- fallible-0.1.0
+- github: matsubara0507/elmap.hs
+  commit: 9c9479d3ead6032a0309b5f80f42e94df85da375
+  subdirs:
+  - elmap
+  - extensible-elmap
+  - servant-elmap
+- github: matsubara0507/slackell
+  commit: 6c8aeefa4c44be4f70537bb9879756d53b705c94
+  subdirs:
+  - .
+  - lib/simple-api

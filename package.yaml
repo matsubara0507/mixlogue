@@ -72,7 +72,6 @@ executables:
     source-dirs: app
     dependencies:
     - mixlogue
-    - githash
     - dotenv
 
 tests:
