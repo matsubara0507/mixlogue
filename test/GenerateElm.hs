@@ -15,7 +15,7 @@ import qualified Mixlogue.Slack      as Slack
 import           Servant             ((:>))
 import           Servant.Elm.Mapping (defElmImports, defElmOptions,
                                       generateElmModuleWith)
-import           Shelly              (run_, shelly)
+import           Shelly              (run_, shelly, test_px)
 
 main :: IO ()
 main = do
@@ -32,4 +32,5 @@ main = do
     (Proxy @ ("api" :> GetMessagesAPI))
   shelly $ do
     run_ "elm" ["make", "elm-src/Main.elm", "--output=static/main.js"]
-    run_ "elm-format" ["--yes", "elm-src/Generated/"]
+    whenM (test_px "elm-format") $
+      run_ "elm-format" ["--yes", "elm-src/Generated/"]
