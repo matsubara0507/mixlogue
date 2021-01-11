@@ -11,7 +11,7 @@ import           Data.Extensible.GetOpt
 import           Mix
 import           Mix.Plugin.Logger      as MixLogger
 import           Mixlogue.Cmd           as Cmd
-import           Mixlogue.Env           (UnixTime)
+import qualified Mixlogue.Slack         as Slack
 import           System.Environment     (getEnv)
 import           Version                (showVersion')
 
@@ -76,7 +76,7 @@ runCmd opts cmd = do
   token <- liftIO $ fromString <$> getEnv "SLACK_TOKEN"
   let plugin = hsequence
          $ #logger <@=> MixLogger.buildPlugin logOpts
-        <: #token  <@=> pure token
+        <: #client <@=> pure (Slack.newClient token)
         <: #config <@=> pure (shrink opts)
         <: #update_local_cache <@=> pure (opts ^. #update)
         <: nil
@@ -84,7 +84,7 @@ runCmd opts cmd = do
   where
     logOpts = #handle @= stdout <: #verbose @= (opts ^. #verbose) <: nil
 
-toTimestamp :: Integer -> IO UnixTime
+toTimestamp :: Integer -> IO Slack.TimeStamp
 toTimestamp before = do
   now <- Time.getCurrentTime
   let t = Time.addUTCTime (fromInteger $ -before * 60) now

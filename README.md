@@ -22,7 +22,7 @@ mixlogue [options]
 ## Example
 
 ```
-$ SLACK_TOKEN=yyy gdmixlogue --before=300 --workspace=hoge
+$ SLACK_TOKEN=yyy mixlogue --before=300 --workspace=hoge
 Please accsess to localhost:8080
 ...
 ```

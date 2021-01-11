@@ -29,9 +29,9 @@ showNotImpl :: MonadIO m => m ()
 showNotImpl = hPutBuilder stdout "not yet implement command."
 
 data Cmd
-  = ShowTimestamp UnixTime
+  = ShowTimestamp Slack.TimeStamp
   | ShowChannels
-  | RunServer UnixTime
+  | RunServer Slack.TimeStamp
 
 showChannels :: RIO Env ()
 showChannels = do
@@ -50,7 +50,7 @@ getChannelsWithLocalCache = do
 
 fetchTimesChannels :: RIO Env [Slack.Channel]
 fetchTimesChannels =
-  fmap (filter isTimes) $ Slack.fetchChannels =<< asks (view #token)
+  fmap (filter isTimes) $ Slack.fetchChannels =<< asks (view #client)
   where
     isTimes :: Slack.Channel -> Bool
     isTimes = Text.isPrefixOf "times_" . view #name
@@ -62,7 +62,7 @@ readChannels path = evalContT $ do
   where
     emessage = "can't decode local cache as slack channels"
 
-watchMessages :: UnixTime -> RIO Env ()
+watchMessages :: Slack.TimeStamp -> RIO Env ()
 watchMessages ts = do
   conf     <- asks (view #config)
   Mix.logDebugR "oldest timestamp" (#ts @= ts <: nil)
@@ -81,23 +81,23 @@ runServer port conf = liftIO . Warp.run port . app conf
 showMessages :: Cache -> Slack.Channel -> RIO Env ()
 showMessages cache ch = evalContT $ do
   lift $ Mix.logDebugR "show messages" ch
-  token <- lift $ asks (view #token)
-  ts    <- readOldest !?? exit (Mix.logWarnR "channel not found" ch)
-  msgs  <- lift $ Slack.fetchMessages token ts ch
-  ts'   <- nextTimestamp msgs ??? exitA ()
+  client <- lift $ asks (view #client)
+  ts     <- readOldest !?? exit (Mix.logWarnR "channel not found" ch)
+  msgs   <- lift $ Slack.fetchMessages client ts ch
+  ts'    <- nextTimestamp msgs ??? exitA ()
   atomically (modifyTVar' (cache ^. #latests) $ Map.insert (ch ^. #id) ts')
-  infos <- catMaybes <$> mapM (lift . Message.build cache ch) msgs
+  infos  <- catMaybes <$> mapM (lift . Message.build cache ch) msgs
   forM_ infos $ \info -> Mix.logInfoR "slack message" info
   atomically $ modifyTVar' (cache ^. #messages) (updateMessages infos)
   where
     readOldest = Map.lookup (ch ^. #id) <$> readTVarIO (cache ^. #latests)
 
-nextTimestamp :: [Slack.Message] -> Maybe UnixTime
+nextTimestamp :: [Slack.Message] -> Maybe Slack.TimeStamp
 nextTimestamp msgs = do
   oldest <- L.maximumMaybe (view #ts <$> msgs)
   tshow . (+ 1) <$> toInt oldest
   where
-    toInt :: UnixTime -> Maybe Int
+    toInt :: Slack.TimeStamp -> Maybe Int64
     toInt = readMaybe . Text.unpack . Text.takeWhile (/= '.')
 
 updateMessages :: [Message.Info] -> [Message.Info] -> [Message.Info]

@@ -1,13 +1,14 @@
-resolver: lts-13.24
+resolver: lts-14.22
 packages:
 - '.'
 extra-deps:
-- elm-bridge-0.5.1
-- extensible-0.6
+- elm-bridge-0.5.2
 - membership-0
-- req-2.0.1
-- retry-0.8.0.1
-- servant-elm-0.6.0.2
+- github: fumieval/extensible
+  commit: d197daaef0ae18b9734384b8f0efa5783bc629e9
+- req-3.0.0
+- retry-0.8.1.0
+- servant-elm-0.7.1
 - github: matsubara0507/mix.hs
   commit: c6c303f9ddf4655a42804ee67d512af6d3b14e98
   subdirs:
@@ -21,3 +22,8 @@ extra-deps:
   - elmap
   - extensible-elmap
   - servant-elmap
+- github: matsubara0507/slackell
+  commit: 6c8aeefa4c44be4f70537bb9879756d53b705c94
+  subdirs:
+  - .
+  - lib/simple-api

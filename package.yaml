@@ -1,5 +1,5 @@
 name:                mixlogue
-version:             0.1.0
+version:             0.2.0
 homepage:            https://github.com/matsubara0507/mixlogue#readme
 license:             MIT
 author:              MATSUBARA Nobutada
@@ -59,6 +59,7 @@ dependencies:
 - req >= 2.0.0
 - servant-blaze
 - servant-server
+- slackell
 - unliftio
 - warp
 

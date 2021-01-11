@@ -1,8 +1,13 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 module Mixlogue.Slack
   ( Channel
+  , Slack.ChannelID
   , Message
   , User
-  , UserId
+  , Slack.UserID
+  , Slack.TimeStamp
+  , Slack.newClient
   , fetchChannels
   , fetchMessages
   , fetchUser
@@ -11,38 +16,79 @@ module Mixlogue.Slack
 import           RIO
 
 import           Data.Extensible
+import           Data.Extensible.Elm.Mapping
+import           Elm.Mapping
 import           Mixlogue.Env
-import           Mixlogue.Slack.API
-import           Mixlogue.Slack.Utils (fromNullable, none)
+import qualified Web.Slack                      as Slack
+import           Web.Slack.WebAPI.Conversations (Conversations)
+import qualified Web.Slack.WebAPI.Conversations as Conversations
+import qualified Web.Slack.WebAPI.Users         as Users
 
-fetchChannels :: SlackToken -> RIO Env [Channel]
-fetchChannels token = go [] <*> toCursor =<< get Nothing
+type User = Record
+  '[ "id"    >: Slack.UserID
+   , "name"  >: Text
+   , "color" >: Maybe Slack.ColorCode
+   ]
+
+instance IsElmType User where
+  compileElmType = compileElmRecordTypeWith "User"
+
+instance IsElmDefinition User where
+  compileElmDef = ETypeAlias . compileElmRecordAliasWith "User"
+
+type Channel = Record
+  '[ "id"   >: Slack.ChannelID
+   , "name" >: Text
+   ]
+
+instance IsElmType Channel where
+  compileElmType = compileElmRecordTypeWith "Channel"
+
+instance IsElmDefinition Channel where
+  compileElmDef = ETypeAlias . compileElmRecordAliasWith "Channel"
+
+type Message = Record
+  '[ "type" >: Text
+   , "user" >: Maybe Slack.UserID
+   , "text" >: Text
+   , "ts"   >: Slack.TimeStamp
+   ]
+
+fetchChannels :: Slack.Client c => c -> RIO Env [Channel]
+fetchChannels client = go [] Nothing
   where
-    get :: Maybe ChannelList -> RIO Env ChannelList
-    get = getChannelList' token . toParams 200 . fmap toCursor
+    go acc (Just "") = pure acc
+    go acc cursor    = do
+      result <- Slack.runWebApi (Conversations.list client $ mkParams 200 cursor)
+      let channels = either (pure []) toChannels result
+          cursor'  = either (pure "") toCursor result
+      go (channels <> acc) (Just cursor')
 
-    toCursor :: ChannelList -> Text
-    toCursor = view #next_cursor . view #response_metadata
+    mkParams :: Int -> Maybe Text -> Conversations.ListParams
+    mkParams l = \case
+      Just c  -> wrench (#cursor @= c <: params)
+      Nothing -> wrench params
+      where
+        params = #limit @= l
+              <: #exclude_archived @= True
+              <: #types @= [Slack.PublicChannel, Slack.PrivateChannel]
+              <: nil
 
-    go :: [Channel] -> ChannelList -> Text -> RIO Env [Channel]
-    go acc _ "" = pure acc
-    go acc cs _ = go (cs ^. #channels <> acc) <*> toCursor =<< get (Just cs)
+    toChannels :: Conversations -> [Channel]
+    toChannels cnvs = shrink <$> mapMaybe Slack.toChannel (cnvs ^. #channels)
 
-    toParams :: Int -> Maybe Text -> ChannelListParams
-    toParams l c = fromNullable none $ wrench
-        $ #limit            @= Just l
-       <: #exclude_archived @= Just True
-       <: #exclude_members  @= Just True
-       <: #cursor           @= c
-       <: nil
+    toCursor :: Conversations -> Text
+    toCursor = maybe "" (view #next_cursor) . view #response_metadata
 
-fetchMessages :: SlackToken -> UnixTime -> Channel -> RIO Env [Message]
-fetchMessages token ts ch = view #messages <$> getMessageList' token params
+fetchMessages ::
+  Slack.Client c => c -> Slack.TimeStamp -> Channel -> RIO Env [Message]
+fetchMessages client ts ch = do
+  result <- Slack.runWebApi (Conversations.history client (ch ^. #id) params)
+  pure $ either (const []) (map shrink . view #messages) result
   where
-    params  = (#channel @= ch ^. #id <: fromNullable none params')
-    params' = wrench $ #oldest @= Just ts <: #inclusive @= Just True <: nil
+    params = wrench $ #oldest @= ts <: #inclusive @= True <: nil
 
-fetchUser :: SlackToken -> UserId -> RIO Env User
-fetchUser token uid = view #user <$> getUserInfo' token params
-  where
-    params = #user @= uid <: none
+fetchUser :: Slack.Client c => c -> Slack.UserID -> RIO Env (Maybe User)
+fetchUser client uid = do
+  result <- Slack.runWebApi (Users.info client uid vacancy)
+  pure $ either (const Nothing) (Just . shrink . view #user) result

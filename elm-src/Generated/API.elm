@@ -1,4 +1,4 @@
-module Generated.API exposing (Channel, Config, Message, User, getApiConfig, getApiMessages, jsonDecChannel, jsonDecConfig, jsonDecMessage, jsonDecUser, jsonEncChannel, jsonEncConfig, jsonEncMessage, jsonEncUser, maybeBoolToIntStr)
+module Generated.API exposing (Channel, Config, Message, User, getApiConfig, getApiMessages, jsonDecChannel, jsonDecConfig, jsonDecMessage, jsonDecUser, jsonEncChannel, jsonEncConfig, jsonEncMessage, jsonEncUser)
 
 -- The following module comes from bartavelle/json-helpers
 
@@ -10,19 +10,6 @@ import Json.Helpers exposing (..)
 import Set
 import String
 import Url.Builder
-
-
-maybeBoolToIntStr : Maybe Bool -> String
-maybeBoolToIntStr mx =
-    case mx of
-        Nothing ->
-            ""
-
-        Just True ->
-            "1"
-
-        Just False ->
-            "0"
 
 
 type alias Config =
@@ -49,7 +36,7 @@ jsonEncConfig val =
 type alias User =
     { id : String
     , name : String
-    , color : String
+    , color : Maybe String
     }
 
 
@@ -58,7 +45,7 @@ jsonDecUser =
     Json.Decode.succeed (\pid pname pcolor -> { id = pid, name = pname, color = pcolor })
         |> required "id" Json.Decode.string
         |> required "name" Json.Decode.string
-        |> required "color" Json.Decode.string
+        |> fnullable "color" Json.Decode.string
 
 
 jsonEncUser : User -> Value
@@ -66,7 +53,7 @@ jsonEncUser val =
     Json.Encode.object
         [ ( "id", Json.Encode.string val.id )
         , ( "name", Json.Encode.string val.name )
-        , ( "color", Json.Encode.string val.color )
+        , ( "color", maybeEncode Json.Encode.string val.color )
         ]
 
 

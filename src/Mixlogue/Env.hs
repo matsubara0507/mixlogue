@@ -9,17 +9,14 @@ import           Data.Extensible
 import           Data.Extensible.Elm.Mapping
 import           Elm.Mapping
 import           Mix.Plugin.Logger           ()
+import           Web.Slack                   (SlackApiClient)
 
 type Env = Record
   '[ "logger" >: LogFunc
-   , "token"  >: SlackToken
+   , "client" >: SlackApiClient
    , "config" >: Config
    , "update_local_cache" >: Bool
    ]
-
-type SlackToken = Text
-
-type UnixTime = Text
 
 type Config = Record
   '[ "workspace" >: Maybe Text

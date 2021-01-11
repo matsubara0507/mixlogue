@@ -6,20 +6,23 @@ module Mixlogue.Message
 import           RIO
 
 import           Data.Extensible
-import           Data.Fallible
+import           Data.Fallible         (evalContT, exitA, (???))
 import           Mixlogue.Cache        (Cache, with)
 import           Mixlogue.Env
 import           Mixlogue.Message.Type
-import qualified Mixlogue.Slack        as Slack
+import           Mixlogue.Slack        (Channel, Message, User, fetchUser)
 
-build :: Cache -> Slack.Channel -> Slack.Message -> RIO Env (Maybe Info)
+build :: Cache -> Channel -> Message -> RIO Env (Maybe Info)
 build cache ch msg = evalContT $ do
-  uid   <- msg ^. #user ??? exitA Nothing
-  token <- lift $ asks (view #token)
-  user  <- lift $ Slack.fetchUser token `with` (cache ^. #users) $ uid
-  pure $ Just
-      $ #user    @= user
-     <: #text    @= (msg ^. #text)
-     <: #channel @= ch
-     <: #ts      @= (msg ^. #ts)
-     <: nil
+  userId <- msg ^. #user ??? exitA Nothing
+  client <- asks (view #client)
+  user   <- lift (fetchUser client `with` (cache ^. #users) $ userId)
+  pure $ toInfo ch msg <$> user
+
+toInfo :: Channel -> Message -> User -> Info
+toInfo ch msg user
+     = #user    @= user
+    <: #text    @= (msg ^. #text)
+    <: #channel @= ch
+    <: #ts      @= (msg ^. #ts)
+    <: nil
