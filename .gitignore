@@ -21,7 +21,6 @@ cabal.project.local~
 .HTF/
 .ghc.environment.*
 *.cabal
-stack.yaml.lock
 .elm
 main.js
 elm-stuff
