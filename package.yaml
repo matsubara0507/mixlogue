@@ -76,14 +76,6 @@ executables:
     - dotenv
 
 tests:
-  mixlogue-test:
-    main: Driver.hs
-    source-dirs: test
-    dependencies:
-    - mixlogue
-    - tasty
-    - tasty-hspec
-    other-modules: []
   generateElm:
     main: GenerateElm.hs
     source-dirs: test

@@ -1,23 +1,18 @@
-resolver: lts-14.22
+resolver: lts-16.28
 packages:
 - '.'
 extra-deps:
-- elm-bridge-0.5.2
 - membership-0
-- github: fumieval/extensible
-  commit: d197daaef0ae18b9734384b8f0efa5783bc629e9
-- req-3.0.0
-- retry-0.8.1.0
-- servant-elm-0.7.1
+- extensible-0.8.1
+- incremental-0.3.1
 - github: matsubara0507/mix.hs
-  commit: c6c303f9ddf4655a42804ee67d512af6d3b14e98
+  commit: 75714be080db16f6a4f9d0a22e86947ffcdadc57
   subdirs:
   - mix
   - mix-json-logger
-- github: matsubara0507/fallible
-  commit: 4a7d965fc8128640ec750b28f7df49be88448286
+- fallible-0.1.0
 - github: matsubara0507/elmap.hs
-  commit: a1539c3be6e8b5757a2a10a55e7c1b19c1fc76fd
+  commit: 9c9479d3ead6032a0309b5f80f42e94df85da375
   subdirs:
   - elmap
   - extensible-elmap
