@@ -24,3 +24,7 @@ cabal.project.local~
 .elm
 main.js
 elm-stuff
+bazel-bin
+bazel-mixlogue
+bazel-out
+bazel-testlogs

@@ -38,3 +38,11 @@ using Haskell Stack and Elm:
 ```
 $ stack test
 ```
+
+### use Bazel
+
+```
+$ bazelisk run //:generator $(pwd)
+$ bazelisk build //:mainjs
+$ cp bazel-bin/main.js static
+```

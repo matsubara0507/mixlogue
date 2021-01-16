@@ -69,10 +69,9 @@ library:
 executables:
   mixlogue:
     main: Main.hs
-    source-dirs: app
+    source-dirs: app/mixlogue
     dependencies:
     - mixlogue
-    - githash
     - dotenv
 
 tests:

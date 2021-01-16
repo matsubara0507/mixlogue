@@ -8,17 +8,17 @@ import qualified RIO.Time               as Time
 import           Configuration.Dotenv   (defaultConfig, loadFile)
 import           Data.Extensible
 import           Data.Extensible.GetOpt
+import qualified Data.Version           as Version
 import           Mix
 import           Mix.Plugin.Logger      as MixLogger
 import           Mixlogue.Cmd           as Cmd
 import qualified Mixlogue.Slack         as Slack
 import           System.Environment     (getEnv)
-import           Version                (showVersion')
 
 main :: IO ()
 main = withGetOpt "[options]" opts $ \r _args -> do
   _ <- tryIO $ loadFile defaultConfig
-  if | r ^. #version -> B.putStr $ fromString (showVersion' version) <> "\n"
+  if | r ^. #version -> B.putStr $ fromString (Version.showVersion version <> "\n")
      | r ^. #ts      -> runCmd r . Cmd.ShowTimestamp =<< toTimestamp (r ^. #before)
      | r ^. #ls      -> runCmd r Cmd.ShowChannels
      | otherwise     -> runCmd r . Cmd.RunServer =<< toTimestamp (r ^. #before)

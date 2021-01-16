@@ -7,7 +7,6 @@ import           Mixlogue.Env                (Config)
 import qualified Mixlogue.Message            as Message
 import           Servant
 import           Servant.HTML.Blaze
-import           Servant.Server.StaticFiles  (serveDirectoryFileServer)
 import           Text.Blaze.Html5            ((!))
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as H

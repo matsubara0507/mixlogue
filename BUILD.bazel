@@ -1,0 +1,91 @@
+# Set all target’s visibility in this package to "public".
+package(default_visibility = ["//visibility:public"])
+
+# Load rules_haskell rules.
+load(
+    "@rules_haskell//haskell:defs.bzl",
+    "haskell_library",
+    "haskell_binary",
+)
+
+# haskell_toolchain_library can access builtin GHC packages
+# and assign them a bazel target name, so that they
+# can be referenced as dependencies.
+# haskell_toolchain_library(name = "base")
+
+load("//:build/common.bzl", "GHC_FLAGS")
+load("//build/rules/haskell:def.bzl", "paths_module")
+
+# You can add your own libraries with haskell_library.
+haskell_library(
+    name = "mixlogue-library",
+    src_strip_prefix = "src",
+    srcs = glob(['src/**/*.hs']),
+    deps = [
+        "@stackage//:base",
+        "@stackage//:rio",
+        "@stackage//:aeson",
+        "@stackage//:blaze-html",
+        "@stackage//:elmap",
+        "@stackage//:extensible",
+        "@stackage//:extensible-elmap",
+        "@stackage//:fallible",
+        "@stackage//:http-api-data",
+        "@stackage//:mix",
+        "@stackage//:mix-json-logger",
+        "@stackage//:req",
+        "@stackage//:servant-blaze",
+        "@stackage//:servant-server",
+        "@stackage//:slackell",
+        "@stackage//:unliftio",
+        "@stackage//:warp",
+    ],
+    compiler_flags = GHC_FLAGS,
+)
+
+paths_module(
+    name = "paths_module",
+    package = "mixlogue",
+    version = "1.0.0",
+)
+
+haskell_binary(
+    name = "mixlogue",
+    srcs = glob(["app/mixlogue/**/*.hs"]),
+    deps = [
+        ":mixlogue-library",
+        ":paths_module",
+        "@stackage//:base",
+        "@stackage//:rio",
+        "@stackage//:extensible",
+        "@stackage//:dotenv",
+        "@stackage//:mix",
+        "@stackage//:mix-json-logger",
+    ],
+    compiler_flags = GHC_FLAGS,
+)
+
+haskell_binary(
+    name = "generator",
+    srcs = glob(["app/generator/**/*.hs"]),
+    deps = [
+        ":mixlogue-library",
+        "@stackage//:base",
+        "@stackage//:rio",
+        "@stackage//:elmap",
+        "@stackage//:servant-elmap",
+        "@stackage//:servant-server",
+        "@stackage//:shelly",
+    ],
+    compiler_flags = GHC_FLAGS,
+)
+
+load("@rules_elm//elm:def.bzl", "elm_make")
+
+elm_make(
+    name = "mainjs",
+    srcs = glob(["elm-src/**", "elm.json"]),
+    elm_json = "elm.json",
+    main = "elm-src/Main.elm",
+    output = "main.js",
+)

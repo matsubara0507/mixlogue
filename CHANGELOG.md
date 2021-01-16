@@ -8,3 +8,4 @@
 - Refactor with [slackell](https://github.com/matsubara0507/slackell)
 - Refactor to update LTS: 16.28
 - Add GitHub Actions for test
+- Misc: add Bazel
