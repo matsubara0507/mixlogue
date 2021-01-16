@@ -1,5 +1,5 @@
 # Give your project a name. :)
-workspace(name = "mdium")
+workspace(name = "mixlogue")
 
 # Load the repository rule to download an http archive.
 load(
