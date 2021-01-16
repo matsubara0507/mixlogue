@@ -61,6 +61,8 @@ stack_snapshot(
         "req",
         "servant-blaze",
         "servant-server",
+        "servant-elmap",
+        "shelly",
         "slackell",
         "unliftio",
         "warp",

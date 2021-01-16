@@ -49,11 +49,9 @@ paths_module(
     version = "1.0.0",
 )
 
-# An example binary using the Prelude module from the
-# GHC base package, and zlib from stackage, to print the hello world.
 haskell_binary(
     name = "mixlogue",
-    srcs = glob(["app/**/*.hs"]),
+    srcs = glob(["app/mixlogue/**/*.hs"]),
     deps = [
         ":mixlogue-library",
         ":paths_module",
@@ -63,6 +61,21 @@ haskell_binary(
         "@stackage//:dotenv",
         "@stackage//:mix",
         "@stackage//:mix-json-logger",
+    ],
+    compiler_flags = GHC_FLAGS,
+)
+
+haskell_binary(
+    name = "generator",
+    srcs = glob(["app/generator/**/*.hs"]),
+    deps = [
+        ":mixlogue-library",
+        "@stackage//:base",
+        "@stackage//:rio",
+        "@stackage//:elmap",
+        "@stackage//:servant-elmap",
+        "@stackage//:servant-server",
+        "@stackage//:shelly",
     ],
     compiler_flags = GHC_FLAGS,
 )
