@@ -3,7 +3,7 @@ build:ci --jobs=2
 build:ci --verbose_failures
 common:ci --color=no
 test:ci --test_output=errors
-
+common --action_env=BAZEL_USE_CPP_ONLY_TOOLCHAIN=1
 
 
 # test environment does not propagate locales by default
